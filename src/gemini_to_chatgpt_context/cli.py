@@ -6,7 +6,7 @@ import argparse
 from datetime import date
 from pathlib import Path
 
-from .converter import filter_since, load_entries, write_archive
+from .converter import copy_attachments, filter_since, load_entries, write_archive
 
 
 def main() -> int:
@@ -23,6 +23,11 @@ def main() -> int:
         metavar="YYYY-MM-DD",
         help="Include only activity records on or after this UTC date.",
     )
+    parser.add_argument(
+        "--copy-attachments",
+        action="store_true",
+        help="Copy attachments referenced by selected records into the output directory.",
+    )
     args = parser.parse_args()
 
     entries = load_entries(args.input)
@@ -31,6 +36,12 @@ def main() -> int:
     archive = args.output_dir / "gemini_conversations.md"
     write_archive(entries, archive)
     print(f"Wrote {len(entries)} Gemini activity entries to {archive}")
+    if args.copy_attachments:
+        result = copy_attachments(entries, args.input.parent, args.output_dir)
+        print(
+            f"Copied {result.copied} attachments; {result.missing} missing, "
+            f"{result.unsafe} skipped for unsafe paths."
+        )
     return 0
 
 

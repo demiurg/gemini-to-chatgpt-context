@@ -19,7 +19,8 @@ uv sync --group dev
 uv run gemini-to-chatgpt-context \
   "Takeout/My Activity/Gemini Apps/MyActivity.json" \
   --since 2026-03-30 \
-  --output-dir output
+  --copy-attachments \
+  --output-dir output/since-2026-03-30
 ```
 
 The command creates `output/gemini_conversations.md`. Each entry retains its
@@ -27,6 +28,10 @@ timestamp and `MyActivity.json` record index.
 
 `--since YYYY-MM-DD` is inclusive and filters in UTC. Omit it to process the
 entire export.
+
+`--copy-attachments` copies files referenced by selected activity records to
+`<output-dir>/attachments/` and writes `<output-dir>/attachments_manifest.md`.
+The raw Takeout files are never moved or changed.
 
 ## Development
 

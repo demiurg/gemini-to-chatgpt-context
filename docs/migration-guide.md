@@ -21,6 +21,10 @@ Use `--since YYYY-MM-DD` to make an inclusive UTC date-filtered archive. This
 is useful when migrating only recent or personal Gemini activity; records with
 an invalid or missing timestamp are excluded from a date-filtered export.
 
+Add `--copy-attachments` to copy attachments referenced by selected records to
+`<output-dir>/attachments/`. `attachments_manifest.md` identifies copied, missing,
+and unsafe attachment paths, along with the source record and Gemini title.
+
 ## What ChatGPT receives
 
 ChatGPT does not receive a native Gemini-chat import. It receives Markdown

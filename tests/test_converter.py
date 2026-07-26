@@ -1,7 +1,12 @@
 from datetime import date
 from pathlib import Path
 
-from gemini_to_chatgpt_context.converter import filter_since, load_entries, write_archive
+from gemini_to_chatgpt_context.converter import (
+    copy_attachments,
+    filter_since,
+    load_entries,
+    write_archive,
+)
 from gemini_to_chatgpt_context.html_markdown import html_to_markdown
 
 
@@ -42,3 +47,26 @@ def test_filter_since_is_inclusive_and_omits_unknown_dates(tmp_path: Path) -> No
     )
     entries = filter_since(load_entries(source), date(2026, 3, 30))
     assert [entry.title for entry in entries] == ["Cutoff"]
+
+
+def test_copy_attachments_creates_manifest_and_preserves_source(tmp_path: Path) -> None:
+    source = tmp_path / "MyActivity.json"
+    attachment = tmp_path / "report.pdf"
+    attachment.write_bytes(b"sample pdf")
+    source.write_text(
+        """[
+          {"header":"Gemini Apps", "title":"Read report", "time":"2026-03-30T00:00:00Z",
+           "attachedFiles":["report.pdf", "missing.pdf", "../unsafe.pdf"]}
+        ]""",
+        encoding="utf-8",
+    )
+    destination = tmp_path / "output"
+    result = copy_attachments(load_entries(source), tmp_path, destination)
+    assert result.copied == 1
+    assert result.missing == 1
+    assert result.unsafe == 1
+    assert attachment.read_bytes() == b"sample pdf"
+    assert (destination / "attachments" / "report.pdf").read_bytes() == b"sample pdf"
+    manifest = (destination / "attachments_manifest.md").read_text(encoding="utf-8")
+    assert "missing" in manifest
+    assert "unsafe path" in manifest

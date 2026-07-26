@@ -56,6 +56,14 @@ file. The local `output/` directory remains the full archive of record.
 Files appear as **Project sources**. They do not become recreated Gemini chats
 in the ChatGPT sidebar.
 
+## Attachments
+
+Run the converter with `--copy-attachments` to materialize files referenced by
+the selected Gemini activity into `<output-dir>/attachments/`. Review
+`attachments_manifest.md`, then manually upload only valuable documents and
+essential images. The tool copies rather than moves them so that Takeout remains
+the original evidence archive.
+
 ## Update cycle
 
 When a decision or task changes, edit/regenerate the local curated file,

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
@@ -19,6 +20,7 @@ class ActivityEntry:
     title: str
     response: str
     prompts: tuple[tuple[str, str], ...]
+    attachments: tuple[str, ...]
 
 
 def load_entries(source: Path) -> list[ActivityEntry]:
@@ -51,6 +53,11 @@ def load_entries(source: Path) -> list[ActivityEntry]:
                 title=str(record.get("title", "Untitled Gemini activity")).strip(),
                 response=response,
                 prompts=prompts,
+                attachments=tuple(
+                    str(filename)
+                    for filename in record.get("attachedFiles", [])
+                    if isinstance(filename, str) and filename
+                ),
             )
         )
     return sorted(
@@ -104,6 +111,64 @@ def filter_since(entries: list[ActivityEntry], cutoff: date) -> list[ActivityEnt
     Records without a valid timestamp cannot be shown in a date-filtered export.
     """
     return [entry for entry in entries if entry.timestamp and entry.timestamp.date() >= cutoff]
+
+
+@dataclass(frozen=True)
+class AttachmentCopyResult:
+    copied: int
+    missing: int
+    unsafe: int
+
+
+def copy_attachments(
+    entries: list[ActivityEntry], source_directory: Path, output_directory: Path
+) -> AttachmentCopyResult:
+    """Copy referenced attachments and write a traceable Markdown manifest."""
+    attachments_dir = output_directory / "attachments"
+    attachments_dir.mkdir(parents=True, exist_ok=True)
+    manifest_lines = [
+        "# Filtered Takeout attachments",
+        "",
+        "Attachments are copied from Takeout; the original export is unchanged.",
+        "",
+        "| Date | File | Status | Source record | Gemini title |",
+        "| --- | --- | --- | --- | --- |",
+    ]
+    copied_files: set[str] = set()
+    missing = 0
+    unsafe = 0
+    for entry in entries:
+        timestamp = entry.timestamp.date().isoformat() if entry.timestamp else "Unknown"
+        for filename in entry.attachments:
+            if Path(filename).name != filename:
+                unsafe += 1
+                manifest_lines.append(
+                    _attachment_manifest_row(timestamp, filename, "skipped: unsafe path", entry)
+                )
+                continue
+            source = source_directory / filename
+            if not source.is_file():
+                missing += 1
+                manifest_lines.append(
+                    _attachment_manifest_row(timestamp, filename, "missing", entry)
+                )
+                continue
+            if filename not in copied_files:
+                shutil.copy2(source, attachments_dir / filename)
+                copied_files.add(filename)
+            manifest_lines.append(_attachment_manifest_row(timestamp, filename, "copied", entry))
+    (output_directory / "attachments_manifest.md").write_text(
+        "\n".join(manifest_lines) + "\n", encoding="utf-8"
+    )
+    return AttachmentCopyResult(copied=len(copied_files), missing=missing, unsafe=unsafe)
+
+
+def _attachment_manifest_row(
+    timestamp: str, filename: str, status: str, entry: ActivityEntry
+) -> str:
+    title = entry.title.replace("|", "\\|").replace("\n", " ")
+    safe_name = filename.replace("|", "\\|")
+    return f"| {timestamp} | `{safe_name}` | {status} | {entry.source_index} | {title} |"
 
 
 def _parse_time(value: str) -> datetime | None:
