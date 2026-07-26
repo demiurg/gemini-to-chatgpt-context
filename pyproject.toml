@@ -1,0 +1,38 @@
+[project]
+name = "gemini-to-chatgpt-context"
+version = "0.1.0"
+description = "Convert Google Takeout Gemini Apps activity into reviewable Markdown context."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+authors = [{ name = "Gemini to ChatGPT Context contributors" }]
+classifiers = ["License :: OSI Approved :: MIT License", "Private :: Do Not Upload"]
+
+[project.scripts]
+gemini-to-chatgpt-context = "gemini_to_chatgpt_context.cli:main"
+
+[dependency-groups]
+dev = ["pytest>=8.0", "pytest-cov>=6.0", "ruff>=0.8"]
+
+[build-system]
+requires = ["uv_build>=0.9.26,<0.10"]
+build-backend = "uv_build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-config"
+
+[tool.coverage.run]
+branch = true
+source = ["gemini_to_chatgpt_context"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]

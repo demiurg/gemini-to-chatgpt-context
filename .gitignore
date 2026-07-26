@@ -1,0 +1,14 @@
+# Personal source exports and generated private context
+Takeout/
+takeout-*.zip
+output/
+
+# Python and tooling
+.venv/
+__pycache__/
+.pytest_cache/
+.coverage
+.ruff_cache/
+*.py[cod]
+dist/
+*.egg-info/
