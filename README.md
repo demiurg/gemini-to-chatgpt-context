@@ -44,6 +44,8 @@ before uploading it to any ChatGPT Project.
 
 ## Documentation
 
+- [Export Gemini Apps activity with Google Takeout](docs/google-takeout.md)
+- [Upload files to a ChatGPT Project](docs/chatgpt-handoff.md)
 - [Migration guide](docs/migration-guide.md)
 - [Architecture](docs/architecture.md)
 - [Implementation plan](docs/implementation-plan.md)

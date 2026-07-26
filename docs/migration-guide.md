@@ -12,6 +12,8 @@ The current converter reads:
 Takeout/My Activity/Gemini Apps/MyActivity.json
 ```
 
+For the Takeout selection steps, see [google-takeout.md](google-takeout.md).
+
 It normalizes response HTML and writes `gemini_conversations.md`, retaining the
 original timestamp and source record index for each entry.
 
